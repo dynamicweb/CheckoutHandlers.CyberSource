@@ -172,20 +172,20 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
                 {
                     case "Work Mode":
                         return new Hashtable {
-                            { WorkModes.Test.ToString(), Translate.Translate("Test") },
-                            { WorkModes.Production.ToString(), Translate.Translate("Production") }
+                            { WorkModes.Test.ToString(), Translator.Translate("Test") },
+                            { WorkModes.Production.ToString(), Translator.Translate("Production") }
                                    };
                     case "Window Mode":
                         return new Hashtable
                                    {
-                                       {WindowModes.Redirect.ToString(), Translate.Translate("Redirect")},
-                                       {WindowModes.Embedded.ToString(), Translate.Translate("Embedded")}
+                                       {WindowModes.Redirect.ToString(), Translator.Translate("Redirect")},
+                                       {WindowModes.Embedded.ToString(), Translator.Translate("Embedded")}
                                    };
                     case "Transaction type":
                         return new Hashtable {
-                            { TransactionTypes.ZeroAuthorization.ToString(), Translate.Translate("Authorization (zero amount)")},
-                            { TransactionTypes.Authorization.ToString(), Translate.Translate("Authorization (order amount)")},
-                            { TransactionTypes.Sale.ToString(), Translate.Translate("Sale") }
+                            { TransactionTypes.ZeroAuthorization.ToString(), Translator.Translate("Authorization (zero amount)")},
+                            { TransactionTypes.Authorization.ToString(), Translator.Translate("Authorization (order amount)")},
+                            { TransactionTypes.Sale.ToString(), Translator.Translate("Sale") }
                         };
                     default:
                         throw new ArgumentException(string.Format("Unknown dropdown name: '{0}'", behaviorMode));
@@ -424,19 +424,19 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
         {
             if (!supportedCurrencyCodes.Any(x => x == order.CurrencyCode))
             {
-                errorMessage = Translate.Translate("Only %%1 currency codes is allowed. Order currency: %%2", "%%1", string.Join(",", supportedCurrencyCodes), "%%2", order.CurrencyCode);
+                errorMessage = Translator.Translate("Only %%1 currency codes is allowed. Order currency: %%2", "%%1", string.Join(",", supportedCurrencyCodes), "%%2", order.CurrencyCode);
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(order.CustomerCountryCode))
             {
-                errorMessage = Translate.Translate("Required customer country code");
+                errorMessage = Translator.Translate("Required customer country code");
                 return false;
             }
 
             if (!supportedCountryCodes.Any(x => x == order.CustomerCountryCode))
             {
-                errorMessage = Translate.Translate("Only %%1 country codes is supported. Order country code: %%2", "%%1", string.Join(",", supportedCountryCodes), "%%2", order.CustomerCountryCode);
+                errorMessage = Translator.Translate("Only %%1 country codes is supported. Order country code: %%2", "%%1", string.Join(",", supportedCountryCodes), "%%2", order.CustomerCountryCode);
                 return false;
             }
 
@@ -509,7 +509,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
                 var user = User.GetUserByID(order.CustomerAccessUserId);
                 if (user != null)
                 {
-                    var savedCard = Services.PaymentCard.CreatePaymentCard(user.ID, order.PaymentMethodId, order.LanguageId, cardName, cardType, cardNubmer, subscribtionId);
+                    var savedCard = Services.PaymentCard.CreatePaymentCard(user.ID, order.PaymentMethodId, cardName, cardType, cardNubmer, subscribtionId);
                     order.SavedCardId = savedCard.ID;
                 }
                 else
