@@ -172,20 +172,20 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
                 {
                     case "Work Mode":
                         return new Hashtable {
-                            { WorkModes.Test.ToString(), Translator.Translate("Test") },
-                            { WorkModes.Production.ToString(), Translator.Translate("Production") }
+                            { WorkModes.Test.ToString(), "Test" },
+                            { WorkModes.Production.ToString(), "Production" }
                                    };
                     case "Window Mode":
                         return new Hashtable
                                    {
-                                       {WindowModes.Redirect.ToString(), Translator.Translate("Redirect")},
-                                       {WindowModes.Embedded.ToString(), Translator.Translate("Embedded")}
+                                       {WindowModes.Redirect.ToString(), "Redirect"},
+                                       {WindowModes.Embedded.ToString(), "Embedded"}
                                    };
                     case "Transaction type":
                         return new Hashtable {
-                            { TransactionTypes.ZeroAuthorization.ToString(), Translator.Translate("Authorization (zero amount)")},
-                            { TransactionTypes.Authorization.ToString(), Translator.Translate("Authorization (order amount)")},
-                            { TransactionTypes.Sale.ToString(), Translator.Translate("Sale") }
+                            { TransactionTypes.ZeroAuthorization.ToString(), "Authorization (zero amount)"},
+                            { TransactionTypes.Authorization.ToString(), "Authorization (order amount)"},
+                            { TransactionTypes.Sale.ToString(), "Sale" }
                         };
                     default:
                         throw new ArgumentException(string.Format("Unknown dropdown name: '{0}'", behaviorMode));
@@ -424,19 +424,19 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
         {
             if (!supportedCurrencyCodes.Any(x => x == order.CurrencyCode))
             {
-                errorMessage = Translator.Translate("Only %%1 currency codes is allowed. Order currency: %%2", "%%1", string.Join(",", supportedCurrencyCodes), "%%2", order.CurrencyCode);
+                errorMessage = $"Only {string.Join(",", supportedCurrencyCodes)} currency codes is allowed. Order currency: {order.CurrencyCode}";
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(order.CustomerCountryCode))
             {
-                errorMessage = Translator.Translate("Required customer country code");
+                errorMessage = "Required customer country code";
                 return false;
             }
 
             if (!supportedCountryCodes.Any(x => x == order.CustomerCountryCode))
             {
-                errorMessage = Translator.Translate("Only %%1 country codes is supported. Order country code: %%2", "%%1", string.Join(",", supportedCountryCodes), "%%2", order.CustomerCountryCode);
+                errorMessage = $"Only {string.Join(",", supportedCountryCodes)} country codes is supported. Order country code: {order.CustomerCountryCode}";
                 return false;
             }
 
