@@ -6,7 +6,6 @@ using Dynamicweb.Extensibility.AddIns;
 using Dynamicweb.Extensibility.Editors;
 using Dynamicweb.Rendering;
 using Dynamicweb.Security.UserManagement;
-using Dynamicweb.SystemTools;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -42,6 +41,9 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
         internal WindowModes windowMode = WindowModes.Redirect;
         private TransactionTypes transactionType = TransactionTypes.Sale;
         private string decline_AVS_Flag;
+        private const string FormTemplateFolder = "eCom7/CheckoutHandler/CyberSource/Payment";
+        private const string CancelTemplateFolder = "eCom7/CheckoutHandler/CyberSource/Cancel";
+        private const string ErrorTemplateFolder = "eCom7/CheckoutHandler/CyberSource/Error";
 
         private static Dictionary<string, string> CardTypes = new Dictionary<string, string>
         {
@@ -63,6 +65,9 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
             {"042", "Maestro (International)"},
             {"043", "GE Money UK card"}
         };
+        private string paymentTemplate;
+        private string cancelTemplate;
+        private string errorTemplate;
 
         static CyberSource()
         {
@@ -121,14 +126,35 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
         [AddInParameter("Forced tokenization(always store token for users: as saved card or on order)"), AddInParameterEditor(typeof(YesNoParameterEditor), "")]
         public bool ForceTokenization { get; set; }
 
-        [AddInParameter("Payment template"), AddInParameterEditor(typeof(TemplateParameterEditor), "folder=templates/eCom7/CheckoutHandler/CyberSource/Payment")]
-        public string PaymentTemplate { get; set; }
+        [AddInParameter("Payment template"), AddInParameterEditor(typeof(TemplateParameterEditor), $"folder=templates/{FormTemplateFolder}")]
+        public string PaymentTemplate
+        {
+            get
+            {
+                return TemplateHelper.GetTemplateName(paymentTemplate);
+            }
+            set => paymentTemplate = value;
+        }
 
-        [AddInParameter("Cancel template"), AddInParameterEditor(typeof(TemplateParameterEditor), "folder=templates/eCom7/CheckoutHandler/CyberSource/Cancel")]
-        public string CancelTemplate { get; set; }
+        [AddInParameter("Cancel template"), AddInParameterEditor(typeof(TemplateParameterEditor), $"folder=templates/{CancelTemplateFolder}")]
+        public string CancelTemplate
+        {
+            get
+            {
+                return TemplateHelper.GetTemplateName(cancelTemplate);
+            }
+            set => cancelTemplate = value;
+        }
 
-        [AddInParameter("Error template"), AddInParameterEditor(typeof(TemplateParameterEditor), "folder=templates/eCom7/CheckoutHandler/CyberSource/Error")]
-        public string ErrorTemplate { get; set; }
+        [AddInParameter("Error template"), AddInParameterEditor(typeof(TemplateParameterEditor), $"folder=templates/{ErrorTemplateFolder}")]
+        public string ErrorTemplate
+        {
+            get
+            {
+                return TemplateHelper.GetTemplateName(errorTemplate);
+            }
+            set => errorTemplate = value;
+        }
 
         [AddInParameter("Work Mode"), AddInParameterEditor(typeof(RadioParameterEditor), "")]
         public string WorkMode
@@ -260,7 +286,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
                 else
                 {
                     string responseJson = Converter.Serialize(response);
-                    string message = $"Remote Capture failed. Response: {responseJson}";                   
+                    string message = $"Remote Capture failed. Response: {responseJson}";
                     LogEvent(order, message, DebuggingInfoType.CaptureResult);
                     return new OrderCaptureInfo(OrderCaptureInfo.OrderCaptureState.Failed, message);
                 }
@@ -348,7 +374,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
             }
 
             // Get template
-            var formTemplate = new Template(PaymentTemplate);
+            var formTemplate = new Template(TemplateHelper.GetTemplatePath(PaymentTemplate, FormTemplateFolder));
 
             // Render tags
             formTemplate.SetTag("CyberSource.HostedPaymentURL", gatewayUrl);
@@ -459,7 +485,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
             Services.Orders.Save(order);
             CheckoutDone(order);
 
-            var cancelTemplate = new Template(CancelTemplate);
+            var cancelTemplate = new Template(TemplateHelper.GetTemplatePath(CancelTemplate, CancelTemplateFolder));
             var orderRenderer = new Dynamicweb.Ecommerce.Frontend.Renderer();
             orderRenderer.RenderOrderDetails(cancelTemplate, order, true);
 
@@ -687,7 +713,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
                 RedirectToCart(order);
             }
 
-            var errorTemplate = new Template(ErrorTemplate);
+            var errorTemplate = new Template(TemplateHelper.GetTemplatePath(ErrorTemplate, ErrorTemplateFolder));
             errorTemplate.SetTag("CheckoutHandler:ErrorMessage", message);
 
             return Render(order, errorTemplate);
@@ -713,10 +739,10 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
             {
                 return PrepareRequest(order, "authorization,create_payment_token", "");
             }
-            else 
-            { 
+            else
+            {
                 return PrepareRequest(order, "create_payment_token", "");
-            }            
+            }
         }
 
         #region Request building
@@ -849,7 +875,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
             LogEvent(order, "JWT token created", jwtToken);
 
             StringContent content = new StringContent(request);
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json"); 
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
 
             var response = await client.PostAsync(resource, content);
@@ -1164,15 +1190,15 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
                         id = savedCard.Token
                     }
                 },
-                orderInformation = new 
+                orderInformation = new
                 {
-                    amountDetails = new 
+                    amountDetails = new
                     {
                         totalAmount = GetTransactionAmount(order),
                         currency = order.Price.Currency.Code
                     }
                 },
-                billTo = new 
+                billTo = new
                 {
                     firstName,
                     lastName,
