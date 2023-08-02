@@ -126,7 +126,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
         [AddInParameter("Forced tokenization(always store token for users: as saved card or on order)"), AddInParameterEditor(typeof(YesNoParameterEditor), "")]
         public bool ForceTokenization { get; set; }
 
-        [AddInParameter("Payment template"), AddInParameterEditor(typeof(TemplateParameterEditor), $"folder=templates/{FormTemplateFolder}")]
+        [AddInParameter("Payment template"), AddInParameterEditor(typeof(TemplateParameterEditor), $"folder=Templates/{FormTemplateFolder}")]
         public string PaymentTemplate
         {
             get
@@ -136,7 +136,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
             set => paymentTemplate = value;
         }
 
-        [AddInParameter("Cancel template"), AddInParameterEditor(typeof(TemplateParameterEditor), $"folder=templates/{CancelTemplateFolder}")]
+        [AddInParameter("Cancel template"), AddInParameterEditor(typeof(TemplateParameterEditor), $"folder=Templates/{CancelTemplateFolder}")]
         public string CancelTemplate
         {
             get
@@ -146,7 +146,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
             set => cancelTemplate = value;
         }
 
-        [AddInParameter("Error template"), AddInParameterEditor(typeof(TemplateParameterEditor), $"folder=templates/{ErrorTemplateFolder}")]
+        [AddInParameter("Error template"), AddInParameterEditor(typeof(TemplateParameterEditor), $"folder=Templates/{ErrorTemplateFolder}")]
         public string ErrorTemplate
         {
             get
