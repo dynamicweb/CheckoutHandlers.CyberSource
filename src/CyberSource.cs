@@ -179,7 +179,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
             set { decline_AVS_Flag = value; }
         }
 
-        [AddInParameter("Ignore AVS Result"), AddInParameterEditor(typeof(YesNoParameterEditor), "Hint=When Ignore AVS results is checked, you will receive no AVS declines;")]
+        [AddInParameter("Ignore AVS Result"), AddInParameterEditor(typeof(YesNoParameterEditor), "infoText=When Ignore AVS results is checked, you will receive no AVS declines;")]
         public bool Ignore_AVS_Result { get; set; } = false;
 
         [AddInParameter("Approve AVS Code"), AddInParameterEditor(typeof(TextParameterEditor), "NewGUI=true; Explanation=Cybersource supports AVS (Address Verification System) validation;Hint=Should contain a comma-separated list of AVS codes which will permit the transaction to be approved;")]
