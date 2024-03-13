@@ -199,29 +199,29 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
                 {
                     case "Work Mode":
                         return new List<ParameterOption>() {
-                            new ( WorkModes.Test.ToString(), "Test" ){Hint = "Choose Test to simulate payment transactions without involving real money transfers"},
-                            new( WorkModes.Production.ToString(), "Production" ){Hint =  "Choose Production when you are ready to go live"}
+                            new ("Test", WorkModes.Test.ToString() ){Hint = "Choose Test to simulate payment transactions without involving real money transfers"},
+                            new ("Production",WorkModes.Production.ToString() ){Hint =  "Choose Production when you are ready to go live"}
                                    };
                     case "Window Mode":
                         return new List<ParameterOption>()
                                    {
-                                       new(WindowModes.Redirect.ToString(), "Redirect"),
-                                       new(WindowModes.Embedded.ToString(), "Embedded")
+                                       new("Redirect",WindowModes.Redirect.ToString()),
+                                       new("Embedded",WindowModes.Embedded.ToString())
                                    };
                     case "Transaction type":
                         return new List<ParameterOption>() {
-                            new( TransactionTypes.ZeroAuthorization.ToString(), "Authorization (zero amount)")
+                            new( "Authorization (zero amount)",TransactionTypes.ZeroAuthorization.ToString())
                             {
                                 Hint = "All transactions are zero authorized. " +
                                 "Capture is performed through AX or similar and you can carry out account " +
                                 "verification checks to check the validity of a Visa/MasterCard Debit or credit card" 
                             },
-                            new( TransactionTypes.Authorization.ToString(), "Authorization (order amount)")
+                            new("Authorization (order amount)",TransactionTypes.Authorization.ToString())
                             {
                                 Hint = " The order is authorized at AuthorizeNET and then you can " +
                                 "manually authorize from ecommerce backend order list. This is used for usual transactions"
                             },
-                            new( TransactionTypes.Sale.ToString(), "Sale" )
+                            new("Sale",TransactionTypes.Sale.ToString())
                             {
                                 Hint = "The amount is sent for authorization, and if approved, is automatically submitted for settlement"
                             }
