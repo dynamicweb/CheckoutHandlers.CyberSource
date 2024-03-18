@@ -20,6 +20,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
+using Dynamicweb.Content.Items.Annotations;
 
 namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
 {
@@ -28,7 +29,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
     /// </summary>
     [AddInName("CyberSource")]
     [AddInDescription("Payment system, http://www.cybersource.com")]
-    public class CyberSource : CheckoutHandlerWithStatusPage, IDropDownOptions, IRemoteCapture, ISavedCard, IRecurring, ICheckAuthorizationStatus
+    public class CyberSource : CheckoutHandlerWithStatusPage, IParameterOptions, IRemoteCapture, ISavedCard, IRecurring, ICheckAuthorizationStatus
     {
         internal enum WorkModes { Test, Production }
         internal enum WindowModes { Redirect, Embedded }
@@ -100,19 +101,19 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
 
         #region Addin parameters
 
-        [AddInParameter("Merchant id"), AddInParameterEditor(typeof(TextParameterEditor), "NewGUI=true")]
+        [AddInParameter("Merchant id"), AddInParameterEditor(typeof(TextParameterEditor), "NewGUI=true;infoText=This is the name of your sandbox account;")]
         public string MerchantId { get; set; }
 
-        [AddInParameter("Profile id"), AddInParameterEditor(typeof(TextParameterEditor), "NewGUI=true")]
+        [AddInParameter("Profile id"), AddInParameterEditor(typeof(TextParameterEditor), "NewGUI=true;infoText=This is a security key generated in the CyberSource Business Center under: Tools & Settings > Profiles > Security;")]
         public string ProfileId { get; set; }
 
-        [AddInParameter("Access key"), AddInParameterEditor(typeof(TextParameterEditor), "NewGUI=true")]
+        [AddInParameter("Access key"), AddInParameterEditor(typeof(TextParameterEditor), "NewGUI=true;infoText=This is the public component of the security key;")]
         public string AccessKey { get; set; }
 
-        [AddInParameter("Secret key"), AddInParameterEditor(typeof(TextParameterEditor), "NewGUI=true;TextArea=true;")]
+        [AddInParameter("Secret key"), AddInParameterEditor(typeof(TextParameterEditor), "NewGUI=true;TextArea=true;infoText=This is the secret component of the security key;")]
         public string SecretKey { get; set; }
 
-        [AddInParameter("Certificate"), AddInParameterEditor(typeof(FileManagerEditor), "NewGUI=true;allowBrowse=true;folder=System;showfullpath=true;")]
+        [AddInParameter("Certificate"), AddInParameterEditor(typeof(FileManagerEditor), "NewGUI=true;allowBrowse=true;folder=System;showfullpath=true;infoText=The certificate should be uploaded to the Dynamicweb File Archive;")]
         public string CertificateFile { get; set; }
 
         [AddInParameter("Transaction type")]
@@ -123,7 +124,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
             set { Enum.TryParse<TransactionTypes>(value, out transactionType); }
         }
 
-        [AddInParameter("Forced tokenization(always store token for users: as saved card or on order)"), AddInParameterEditor(typeof(YesNoParameterEditor), "")]
+        [AddInParameter("Forced tokenization"), AddInParameterEditor(typeof(YesNoParameterEditor), "infoText=;Forces the token to be saved on order or card for logged in users who have not chosen \"Save card\";")]
         public bool ForceTokenization { get; set; }
 
         [AddInParameter("Payment template"), AddInParameterEditor(typeof(TemplateParameterEditor), $"folder=Templates/{FormTemplateFolder}")]
@@ -163,7 +164,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
             set { Enum.TryParse<WorkModes>(value, out workMode); }
         }
 
-        [AddInParameter("Window Mode"), AddInParameterEditor(typeof(RadioParameterEditor), "")]
+        [AddInParameter("Window Mode"), AddInParameterEditor(typeof(RadioParameterEditor), "Explanation=Select if the payment window should redirect or if it should be embedded;")]
         public string WindowMode
         {
             get { return windowMode.ToString(); }
@@ -171,50 +172,62 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
         }
 
 
-        [AddInParameter("Review AVS Codes"), AddInParameterEditor(typeof(TextParameterEditor), "NewGUI=true")]
+        [AddInParameter("Review AVS Codes"), AddInParameterEditor(typeof(TextParameterEditor), "NewGUI=true;Explanation=Cybersource supports AVS (Address Verification System) validation;Hint=Should contain the AVS codes you want to receive an AVS validation for;")]
         public string Decline_AVS_Flag
         {
             get { return string.IsNullOrEmpty(decline_AVS_Flag) ? "N" : decline_AVS_Flag; }
             set { decline_AVS_Flag = value; }
         }
 
-        [AddInParameter("Ignore AVS Result"), AddInParameterEditor(typeof(YesNoParameterEditor), "")]
+        [AddInParameter("Ignore AVS Result"), AddInParameterEditor(typeof(YesNoParameterEditor), "infoText=When Ignore AVS results is checked, you will receive no AVS declines;")]
         public bool Ignore_AVS_Result { get; set; } = false;
 
-        [AddInParameter("Approve AVS Code"), AddInParameterEditor(typeof(TextParameterEditor), "NewGUI=true")]
+        [AddInParameter("Approve AVS Code"), AddInParameterEditor(typeof(TextParameterEditor), "NewGUI=true; Explanation=Cybersource supports AVS (Address Verification System) validation;Hint=Should contain a comma-separated list of AVS codes which will permit the transaction to be approved;")]
         public string Result_AVS_Flag { get; set; }
         #endregion
 
         /// <summary>
         /// Gets options according to behavior mode
         /// </summary>
-        /// <param name="behaviorMode"></param>
+        /// <param name="parameterName"></param>
         /// <returns>Key-value pairs of settings</returns>
-        Hashtable IDropDownOptions.GetOptions(string behaviorMode)
+        public IEnumerable<ParameterOption> GetParameterOptions(string parameterName)
         {
             try
             {
-                switch (behaviorMode)
+                switch (parameterName)
                 {
                     case "Work Mode":
-                        return new Hashtable {
-                            { WorkModes.Test.ToString(), "Test" },
-                            { WorkModes.Production.ToString(), "Production" }
+                        return new List<ParameterOption>() {
+                            new ("Test", WorkModes.Test.ToString() ){Hint = "Choose Test to simulate payment transactions without involving real money transfers"},
+                            new ("Production",WorkModes.Production.ToString() ){Hint =  "Choose Production when you are ready to go live"}
                                    };
                     case "Window Mode":
-                        return new Hashtable
+                        return new List<ParameterOption>()
                                    {
-                                       {WindowModes.Redirect.ToString(), "Redirect"},
-                                       {WindowModes.Embedded.ToString(), "Embedded"}
+                                       new("Redirect",WindowModes.Redirect.ToString()),
+                                       new("Embedded",WindowModes.Embedded.ToString())
                                    };
                     case "Transaction type":
-                        return new Hashtable {
-                            { TransactionTypes.ZeroAuthorization.ToString(), "Authorization (zero amount)"},
-                            { TransactionTypes.Authorization.ToString(), "Authorization (order amount)"},
-                            { TransactionTypes.Sale.ToString(), "Sale" }
+                        return new List<ParameterOption>() {
+                            new( "Authorization (zero amount)",TransactionTypes.ZeroAuthorization.ToString())
+                            {
+                                Hint = "All transactions are zero authorized. " +
+                                "Capture is performed through AX or similar and you can carry out account " +
+                                "verification checks to check the validity of a Visa/MasterCard Debit or credit card" 
+                            },
+                            new("Authorization (order amount)",TransactionTypes.Authorization.ToString())
+                            {
+                                Hint = " The order is authorized at AuthorizeNET and then you can " +
+                                "manually authorize from ecommerce backend order list. This is used for usual transactions"
+                            },
+                            new("Sale",TransactionTypes.Sale.ToString())
+                            {
+                                Hint = "The amount is sent for authorization, and if approved, is automatically submitted for settlement"
+                            }
                         };
                     default:
-                        throw new ArgumentException(string.Format("Unknown dropdown name: '{0}'", behaviorMode));
+                        throw new ArgumentException(string.Format("Unknown dropdown name: '{0}'", parameterName));
                 }
             }
             catch (System.Threading.ThreadAbortException)
@@ -227,6 +240,9 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
                 return null;
             }
         }
+
+        
+        
 
         /// <summary>
         /// Send capture request to transaction service
@@ -304,6 +320,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
             }
         }
 
+        [Obsolete()]
         /// <summary>
         /// Starts order checkout procedure
         /// </summary>
@@ -392,7 +409,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
             // Render and return
             return this.Render(order, formTemplate);
         }
-
+        [Obsolete()]
         public override string Redirect(Order order)
         {
             LogEvent(order, "Redirected to CyberSource CheckoutHandler");
@@ -506,7 +523,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
                 return ProcessOrder(order);
             }
 
-            RedirectToCart(order);
+            PassToCart(order);
 
             return null;
         }
@@ -531,8 +548,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
 
                 order.TransactionCardType = cardType;
                 string transactionId = Dynamicweb.Context.Current.Request["transaction_id"];
-
-                var user = User.GetUserByID(order.CustomerAccessUserId);
+                var user = UserManagementServices.Users.GetUserById(order.CustomerAccessUserId);
                 if (user != null)
                 {
                     var savedCard = Services.PaymentCard.CreatePaymentCard(user.ID, order.PaymentMethodId, cardName, cardType, cardNubmer, subscribtionId);
@@ -593,7 +609,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
 
             if (windowMode != WindowModes.Embedded)
             {
-                RedirectToCart(order);
+                PassToCart(order);
             }
             else
             {
@@ -678,7 +694,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
 
                     if (windowMode != WindowModes.Embedded)
                     {
-                        RedirectToCart(order);
+                        PassToCart(order);
                     }
                     else
                     {
@@ -710,7 +726,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
 
             if (string.IsNullOrWhiteSpace(ErrorTemplate))
             {
-                RedirectToCart(order);
+                PassToCart(order);
             }
 
             var errorTemplate = new Template(TemplateHelper.GetTemplatePath(ErrorTemplate, ErrorTemplateFolder));
@@ -1113,7 +1129,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
                 {
                     LogError(order, "Some error happened on creating saved card.");
                 }
-                RedirectToCart(order);
+                PassToCart(order);
             }
             else
             {
@@ -1168,7 +1184,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
 
             if (order.RecurringOrderId <= 0)
             {
-                RedirectToCart(order);
+                PassToCart(order);
             }
         }
 
@@ -1261,6 +1277,7 @@ namespace Dynamicweb.Ecommerce.CheckoutHandlers.CyberSource
                 return AuthorizationStatus.NotAuthorized;
             }
         }
+
 
         #endregion
 
