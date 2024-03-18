@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<VersionPrefix>10.0.2</VersionPrefix>
+		<VersionPrefix>10.0.3</VersionPrefix>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>
 		<Title>CyberSource</Title>
 		<Description>"Payment system, http://www.cybersource.com"</Description>
