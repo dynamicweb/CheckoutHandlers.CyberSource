@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<VersionPrefix>10.0.3</VersionPrefix>
+		<VersionPrefix>10.11.2</VersionPrefix>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>
 		<Title>CyberSource</Title>
 		<Description>"Payment system, http://www.cybersource.com"</Description>
@@ -14,17 +14,34 @@
 		<Copyright>Copyright © 2023 Dynamicweb Software A/S</Copyright>
 	</PropertyGroup>
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<IncludeSymbols>true</IncludeSymbols>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PackageIcon>cybersource-logo.png</PackageIcon>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Dynamicweb.Ecommerce" Version="10.0.34" />
+	  <None Remove="Updates\checkouthandler_cancel.html" />
+	  <None Remove="Updates\checkouthandler_error.html" />
+	  <None Remove="Updates\Payment.html" />
+	</ItemGroup>
+	<ItemGroup>
+	  <EmbeddedResource Include="Updates\checkouthandler_cancel.html" />
+	  <EmbeddedResource Include="Updates\checkouthandler_error.html" />
+	  <EmbeddedResource Include="Updates\Payment.html" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Dynamicweb.Ecommerce" Version="10.11.2" />
 		<PackageReference Include="jose-jwt" Version="4.0.0" />
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="cybersource-logo.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 </Project>
